@@ -8,8 +8,8 @@ const Users = require('../users/users-model')
   }
 */
 function restricted(req, res, next) {
-  if(req.session.user == null) {
-    next({ status: 401, message: 'this endpoint is restricted!' });
+  if(!req.session.user) {
+    next({ status: 401, message: 'You shall not pass!' });
   } else {
       next();
   }
@@ -44,8 +44,9 @@ async function checkUsernameFree(req, res, next) {
   }
 */
 async function checkUsernameExists(req, res, next) {
-  const users = await Users.findBy({ username: req.user.username })
+  const users = await Users.findBy({ username: req.body.username })
   if(users.length) {
+    req.user = users[0]
       next();
   } else {
       next({ status: 401, message: 'Invalid credentials' });
