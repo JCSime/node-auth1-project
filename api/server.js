@@ -3,6 +3,8 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const session = require('express-session');
+const Store = require('connect-session-knex')(session)
+const knex = require('../data/db-config')
 
 const usersRouter = require('./users/users-router')
 const authRouter = require('./auth/auth-router')
@@ -16,22 +18,28 @@ const authRouter = require('./auth/auth-router')
   Users that do authenticate should have a session persisted on the server,
   and a cookie set on the client. The name of the cookie should be "chocolatechip".
 
-  The session can be persisted in memory (would not be adecuate for production)
+  The session can be persisted in memory (would not be adequate for production)
   or you can use a session store like `connect-session-knex`.
  */
 
 const server = express();
 
 const sessionConfig = {
-  name: 'bloom_auth1',
+  name: 'chocolatechip',
   secret: 'keep it secret, keep it safe!',
+  saveUninitialized: false,
+  resave: false,
+  store: new Store({
+    knex,
+    createTable: true,
+    clearInterval: 1000 * 60 * 10,
+    sidfieldname: 'sid',
+  }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
+    maxAge: 1000 * 60 * 10,
     secure: false,
     httpOnly: true,
-  },
-  resave: false,
-  saveUnitialized: false,
+  }
 };
 
 server.use(session(sessionConfig));

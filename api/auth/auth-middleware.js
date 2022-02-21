@@ -23,11 +23,15 @@ function restricted(req, res, next) {
     "message": "Username taken"
   }
 */
-function checkUsernameFree(req, res, next) {
-  if(Users.findBy({ username: req.user.username }).first() != null) {
-    next({ status: 400, message: `user '${req.user.username}' already exists!` });
-  } else {
-      next();
+async function checkUsernameFree(req, res, next) {
+  try {
+    const users = await Users.findBy({ username: req.body.username })
+    if(!users.length) {
+      next()
+    }
+    else next({ status: 422, message: "Username taken" })
+  } catch (err) {
+    next(err)
   }
 }
 
@@ -40,12 +44,11 @@ function checkUsernameFree(req, res, next) {
   }
 */
 async function checkUsernameExists(req, res, next) {
-  const user = await Users.findBy({ username: req.user.username }).first();
-  if(user == null) {
-      next({ status: 400, message: `user '${req.user.username}' does not exist!` });
-  } else {
-      req.user = user;
+  const users = await Users.findBy({ username: req.user.username })
+  if(users.length) {
       next();
+  } else {
+      next({ status: 401, message: 'Invalid credentials' });
   }
 }
 
@@ -59,8 +62,8 @@ async function checkUsernameExists(req, res, next) {
 */
 function checkPasswordLength(req, res, next) {
   const { password } = req.body;
-  if(!password || password.trim().length() >= 3) {
-    next({ status: 400, message: 'Password can not be 3 chars or shorter!'})
+  if(!password || password.length < 3) {
+    next({ status: 422, message: 'Password must be longer than 3 chars'})
   } else {
     next();
   }

@@ -29,16 +29,15 @@ const { checkUsernameFree, checkUsernameExists, checkPasswordLength } = require(
   }
  */
 
-router.post('/register', checkUsernameExists, checkUsernameFree, checkPasswordLength, async (req, res, next) => {
-  try {
-    const user = req.user;
-    const hash = bcrypt.hashSync(user.password, 12);
-    user.password = hash;
-    let result = await Users.add(user);
-    res.status(201).json(result);
-  } catch(err) {
-    next(err);
-  }
+router.post('/register', checkUsernameFree, checkPasswordLength, async (req, res, next) => {
+  const { username, password } = req.body
+  const hash = bcrypt.hashSync(password, 12);
+
+  Users.add({ username, password: hash })
+    .then(saved =>{
+      res.status(201).json(saved)
+    })
+    .catch(next)
 });
 
 /**
@@ -57,6 +56,9 @@ router.post('/register', checkUsernameExists, checkUsernameFree, checkPasswordLe
   }
  */
 
+router.post('/login', checkUsernameExists, (req, res, next) => {
+  res.json('login')
+});
 
 /**
   3 [GET] /api/auth/logout
@@ -74,6 +76,9 @@ router.post('/register', checkUsernameExists, checkUsernameFree, checkPasswordLe
   }
  */
 
+router.get('/logout', (req, res, next) => {
+  res.json('logout')
+});
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules
 module.exports = router;
